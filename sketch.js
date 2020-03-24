@@ -4,7 +4,7 @@ class Settings {
   constructor() {
     // General
     this.animate = true;
-    this.showDiagnostics = true;
+    this.showDiagnostics = false;
     this.drawFlowfield = false;
     
     // Flowfield
@@ -27,6 +27,27 @@ class Settings {
     this.fancyColorRange = 100;
     this.staticColor = 0;
   }
+
+  randomize() {
+    // Flowfield
+    this.wraparound = floor(random(0, 2)) ? false : true;
+    this.cells = floor(random(3, 100.0));
+    this.octaves = floor(random(2, 8));
+    this.falloff = random(0.1, 0.75);
+    this.xy_increment = random(0.01, 0.2);
+    this.z_increment = floor(random(4)) == 1 ? random(0.0001, 0.001) : 0;
+    
+    // Particle stuff
+    this.pointSize = floor(random(1, 4));
+    this.minSpeed = random(0, 3);
+    this.maxSpeed = settings.minSpeed + random(0, 10);
+    this.minLifeInSeconds = random(0, 3);
+    this.maxLifeInSeconds = settings.minLifeInSeconds + random(0, 20);
+    this.alpha = random(5, 15);
+    this.fancyColors = floor(random(0, 2)) ? false : true;
+    this.fancyColorRange = random(20, 100);
+    this.staticColor = random(0, 100);
+  }
 }
 
 let gui = null;
@@ -47,32 +68,41 @@ function setup() {
   initNewRandomWorld();
 }
 
-function initNewRandomWorld() {
-  // Randomize
-  // settings.animate = true;
-  // settings.showDiagnostics = true;
-  // settings.drawFlowfield = false;
+function initializeGuiControls() {
+  gui = new dat.GUI();
   
-  // Flowfield
-  settings.wraparound = floor(random(0, 2));
-  settings.cells = floor(random(3, 100.0));
-  settings.octaves = floor(random(2, 8));
-  settings.falloff = random(0.1, 0.75);
-  settings.xy_increment = random(0.01, 0.2);
-  settings.z_increment = floor(random(4)) == 1 ? random(0.0001, 0.001) : 0;
-  
-  // Particle stuff
-  //settings.count = 2000;
-  settings.pointSize = floor(random(1, 4 ));
-  settings.minSpeed = random(0, 3);
-  settings.maxSpeed = settings.minSpeed + random(0, 10);
-  settings.minLifeInSeconds = random(0, 3);
-  settings.maxLifeInSeconds = settings.minLifeInSeconds + random(0, 20);
-  settings.alpha = random(5, 15);
-  settings.fancyColors = floor(random(0, 2));
-  settings.fancyColorRange = random(20, 100);
-  settings.staticColor = random(0, 100);
+  gui.add(settings, 'animate');
+  gui.add(settings, 'showDiagnostics');
+  gui.add(settings, 'drawFlowfield');
 
+  let f1 = gui.addFolder('Flow Field');
+  f1.add(settings, 'wraparound').onFinishChange(n => init()).listen();
+  f1.add(settings, 'cells', 1, 200).step(1).onFinishChange(n => init()).listen();
+  f1.add(settings, 'octaves', 1, 10).step(1).onFinishChange(n => init()).listen();
+  f1.add(settings, 'falloff', 0, 1).onFinishChange(n => init()).listen();
+  f1.add(settings, 'xy_increment', 0, 0.2).listen();
+  f1.add(settings, 'z_increment', 0, 0.05).listen();
+  
+  let f2 = gui.addFolder('Particles');
+  f2.add(settings, 'count', 1, 5000).step(1).onFinishChange(n => init());
+  f2.add(settings, 'pointSize', 1, 10).step(1).listen();
+  f2.add(settings, 'minSpeed', 0, 5).listen();
+  f2.add(settings, 'maxSpeed', 0, 25).listen();
+  f2.add(settings, 'minLifeInSeconds', 0, 5).listen();
+  f2.add(settings, 'maxLifeInSeconds', 0, 30).listen();
+  f2.add(settings, 'alpha', 1, 100).listen();
+  f2.add(settings, 'fancyColors').onFinishChange(n => init()).listen();
+  f2.add(settings, 'fancyColorRange', 0, 100).step(1).listen();
+  f2.add(settings, 'staticColor', 0, 100).listen();
+  
+  f1.open();
+  f2.open();
+  
+  gui.close();
+}
+
+function initNewRandomWorld() {
+  settings.randomize();
   updateControls();
   init();
 }
@@ -90,20 +120,6 @@ function initializeFlowField() {
   scly = height / settings.cells;
   
   flowfield = new Array(settings.cells * settings.cells);
-}
-
-function initializeGuiControls() {
-  gui = new dat.GUI()
-  gui.add(settings, 'animate');
-  gui.add(settings, 'drawFlowfield').onFinishChange(n => init());
-  gui.add(settings, 'cells', 1, 200).step(1).onFinishChange(n => init());
-  gui.add(settings, 'octaves', 1, 10).step(1).onFinishChange(n => init());
-  gui.add(settings, 'falloff', 0, 1).onFinishChange(n => init());
-  gui.add(settings, 'xy_increment', 0, 0.2).onFinishChange(n => init());
-  gui.add(settings, 'z_increment', 0, 0.05).onFinishChange(n => init());
-  gui.add(settings, 'count', 1, 5000).step(1).onFinishChange(n => init());
-  
-  gui.close();
 }
 
 function initializeParticles() {
@@ -139,7 +155,7 @@ function keyTyped() {
 
 // Main update loop
 function draw() {
-  //background(0, 10);
+  updateControls();
 
   if (settings.showDiagnostics)
     drawDiagnostics();
@@ -177,7 +193,6 @@ function updateFlowfield() {
 }
 
 function drawFlowfield() {
-  
   stroke(255, 50);
   strokeWeight(1);
 
@@ -196,7 +211,7 @@ function drawFlowfield() {
 function updateParticles() {
   for (let particle of particles) {
     particle.update(deltaTime, flowfield, sclx, scly, settings.cells);
-    particle.draw(settings.pointSize);
+    particle.draw();
   }
 }
 
