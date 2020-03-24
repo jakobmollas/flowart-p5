@@ -63,7 +63,7 @@ function setup() {
   
   createGuiControls();
   initCanvas();
-  createRandomWorld();
+  createNewRandomWorld();
 }
 
 function initCanvas() {
@@ -109,7 +109,7 @@ function windowResized() {
   restart();
 }
 
-function createRandomWorld() {
+function createNewRandomWorld() {
   settings.randomize();
   restart();
 }
@@ -136,8 +136,6 @@ function initializeParticles() {
     particles[i] = new Particle();
 }
 
-
-
 function keyTyped() {
   switch (key) {
     case "a":
@@ -149,13 +147,17 @@ function keyTyped() {
       break;
 
       case " ":
-        createRandomWorld();
+        createNewRandomWorld();
         break;
 
     default:
       // Prevent default behavior
       return false;
   }
+}
+
+function deviceShaken() {
+  createNewRandomWorld();
 }
 
 // Main update loop
