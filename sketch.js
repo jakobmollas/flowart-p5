@@ -59,16 +59,19 @@ let particles = [];
 let flowfield;
 
 function setup() {
-  let canvas = createCanvas(windowWidth, windowHeight);
-  canvas.style('display', 'block');
-
   textFont('monospace');
-
-  initializeGuiControls();
-  initNewRandomWorld();
+  
+  createGuiControls();
+  initCanvas();
+  createRandomWorld();
 }
 
-function initializeGuiControls() {
+function initCanvas() {
+  let canvas = createCanvas(windowWidth, windowHeight);
+  canvas.style('display', 'block');
+}
+
+function createGuiControls() {
   gui = new dat.GUI();
   
   gui.add(settings, 'animate');
@@ -101,13 +104,17 @@ function initializeGuiControls() {
   gui.close();
 }
 
-function initNewRandomWorld() {
-  settings.randomize();
-  updateControls();
-  init();
+function windowResized() {
+  initCanvas();
+  restart();
 }
 
-function init() {
+function createRandomWorld() {
+  settings.randomize();
+  restart();
+}
+
+function restart() {
   initializeFlowField();
   initializeParticles();
   background(0);
@@ -129,9 +136,7 @@ function initializeParticles() {
     particles[i] = new Particle();
 }
 
-function windowResized() {
-  setup();
-}
+
 
 function keyTyped() {
   switch (key) {
@@ -144,7 +149,7 @@ function keyTyped() {
       break;
 
       case " ":
-        initNewRandomWorld();
+        createRandomWorld();
         break;
 
     default:
@@ -155,8 +160,6 @@ function keyTyped() {
 
 // Main update loop
 function draw() {
-  updateControls();
-
   if (settings.showDiagnostics)
     drawDiagnostics();
 
@@ -213,11 +216,6 @@ function updateParticles() {
     particle.update(deltaTime, flowfield, sclx, scly, settings.cells);
     particle.draw();
   }
-}
-
-function updateControls() {
-  for (let i in gui.__controllers)
-    gui.__controllers[i].updateDisplay();
 }
 
 function drawDiagnostics() {
