@@ -60,7 +60,8 @@ let flowfield;
 
 function setup() {
   textFont('monospace');
-  
+  setShakeThreshold(100);
+
   createGuiControls();
   initCanvas();
   createNewRandomWorld();
