@@ -60,7 +60,7 @@ let flowfield;
 
 function setup() {
   textFont('monospace');
-  setShakeThreshold(100);
+  setShakeThreshold(75);
 
   createGuiControls();
   initCanvas();
